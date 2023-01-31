@@ -15,4 +15,4 @@ A very smple phase-separating system can be constructed as follows--- consider a
 <img src="./graphics/frame-0001.jpg" width="300">
 <img src="./graphics/frame-1000.jpg" width="300">
 
-Note that this is not a very (even physically) realistic simulation. For one, we assume (by randomly swapping 'particles') that the system is ergodic (i.e. it can attain any confirmation, given infinite time). This is certainly not true for liquid-liquid phase separation. But this simulation provides a neat insight into LLPS.
+Note that this is not a very (even physically) realistic simulation. For one, we assume (by randomly swapping 'particles') that the system is ergodic (i.e. it can attain any conformation, given infinite time). This is certainly not true for liquid-liquid phase separation. But nonetheless, this simulation provides a neat insight into LLPS.
