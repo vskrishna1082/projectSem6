@@ -3,7 +3,13 @@
 '''---------------------------------
 2-D granular convection simulator
 
-runs at 120 FPS
+Generates 200 small particles (blue),
+and 50 large particles (red) at random
+locations in a box subject to gravity
+and attempts to simulate granular 
+convection.
+
+runs at 240 FPS
 scale: 1px = 10cm
 speed unit: 1u = 12 ms-1
 ---------------------------------'''
@@ -14,6 +20,8 @@ import math
 
 pygame.init()
 pygame.display.set_caption("Colliding Particles")
+
+# declare some pygame specific variables
 
 bg_color = (255,255,255)
 (width,height) = (200,300)
@@ -44,11 +52,8 @@ class Vector:
 
 # Some Constant parameters
 gravity = Vector(0.5*math.pi, 0.01)
-# gravity = Vector(0.5*math.pi, 0.0)
 drag = 0.999
-# drag = 1
 elasticity = 0.50
-# elasticity = 1
 
 class Particle:
     def __init__(self, pos, size):
@@ -63,8 +68,6 @@ class Particle:
     def display(self):
         pygame.draw.circle(screen, self.fillcolor, (self.x, self.y), self.size)
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.size, self.thickness)
-        # pygame.draw.line(screen, self.color, (self.x, self.y), (self.x+50*self.velocity.x, self.y+50*self.velocity.y), width = 1)
-        # pygame.draw.circle(screen, self.color, (self.x+50*self.velocity.x, self.y+50*self.velocity.y), 2, self.thickness)
 
     def move(self):
         self.velocity = Vector.add(self.velocity, gravity)
@@ -72,6 +75,7 @@ class Particle:
         self.y += self.velocity.y
         self.velocity.length *= drag
 
+# deal with collisions with container walls
     def bounce(self):
         if self.x > width - self.size:
             self.x = 2*(width - self.size) - self.x
@@ -93,13 +97,7 @@ class Particle:
             self.velocity.angle = - self.velocity.angle
             self.velocity.length *= elasticity
 
-    def fastbounce(self):
-        if (self.x > width - self.size) | (self.x < self.size):
-            self.velocity.angle = math.pi - self.velocity.angle
-
-        if (self.y > height - self.size) | (self.y < self.size):
-            self.velocity.angle = - self.velocity.angle
-
+# handle particle-particle collision
 def collide(p1,p2):
     dx = p1.x - p2.x
     dy = p1.y - p2.y
@@ -107,14 +105,18 @@ def collide(p1,p2):
 
     if distance < p1.size + p2.size:
         normal = math.atan2(dy,dx)
+        # angle by which componenets along normal must be flipped
         flipper_angle_1 = normal - 0.5*math.pi - p1.velocity.angle
         flipper_angle_2 = normal - 0.5*math.pi - p2.velocity.angle
         p1.velocity.angle = 2*normal - p1.velocity.angle - math.pi
         p2.velocity.angle = 2*normal - p2.velocity.angle - math.pi
 
+        # correct magnitude of velocities post collision
         (p1.velocity.length, p2.velocity.length) = (math.hypot(math.sin(flipper_angle_2),math.cos(flipper_angle_1)), math.hypot(math.sin(flipper_angle_1),math.cos(flipper_angle_2)))
         p1.velocity.length *= elasticity
         p2.velocity.length *= elasticity
+
+        # particle collision is detected by intersections, so resolve them
         bounce_length = ((p1.size + p2.size) - distance)
         bounce_y = 0.5*bounce_length*math.cos(normal)
         bounce_x = 0.5*bounce_length*math.sin(normal)
@@ -123,13 +125,13 @@ def collide(p1,p2):
         p1.y -= bounce_y
         p2.y += bounce_y
 
-# Generating a random particle
+# Generating random particles
 small_particles = 200
 big_particles = 50
 my_particles=[]
 
+# Generate blue particles of size 5
 for i in range(small_particles):
-    # size = random.randint(2,10)
     size = 5
     position = (random.randint(size,width-size), random.randint(size,height-size))
     particle = Particle(position,size)
@@ -137,8 +139,8 @@ for i in range(small_particles):
     particle.velocity.angle = random.uniform(0.5*math.pi,math.pi)
     my_particles.append(particle)
 
+# Generate red particles of size 10
 for i in range(big_particles):
-    # size = random.randint(2,10)
     size = 10 
     position = (random.randint(size,width-size), random.randint(size,height-size))
     particle = Particle(position,size)
@@ -165,10 +167,5 @@ while running:
         keys = pygame.key.get_pressed()
         if event.type == pygame.QUIT:
             running = False
-        elif keys[pygame.K_SPACE]:
-            paused = not paused
-
-    if paused:
-        continue # skip this iteration if paused
     update_screen()
     clock.tick(240)
